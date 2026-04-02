@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
@@ -8,9 +7,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
@@ -18,14 +15,13 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { ArrowUpDown, MoreHorizontal, Trash2 } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import * as Icons from 'lucide-react';
 
 type GetColumnsProps = {
   onStatusChange: (jobId: string, status: JobStatus) => void;
-  onDelete: (jobId: string, position: string) => void;
 };
 
 const toTitleCase = (str: string) => {
@@ -42,7 +38,7 @@ const Icon = ({ name, className }: { name: string; className?: string }) => {
 };
 
 
-export const getColumns = ({ onStatusChange, onDelete }: GetColumnsProps): ColumnDef<Job>[] => {
+export const getColumns = ({ onStatusChange }: GetColumnsProps): ColumnDef<Job>[] => {
   const columns: ColumnDef<Job>[] = [
     {
       id: 'slNo',
@@ -51,6 +47,28 @@ export const getColumns = ({ onStatusChange, onDelete }: GetColumnsProps): Colum
         const { pageIndex, pageSize } = table.getState().pagination;
         const index = (pageIndex * pageSize) + row.index + 1;
         return <span>{index}</span>;
+      },
+    },
+    {
+      accessorKey: 'priority',
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Priority
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const priority = row.original.priority;
+        return (
+          <div className="text-center">
+            <Badge variant="outline" className="font-mono">
+              {priority ?? '—'}
+            </Badge>
+          </div>
+        );
       },
     },
     {
@@ -148,7 +166,7 @@ export const getColumns = ({ onStatusChange, onDelete }: GetColumnsProps): Colum
     },
     {
     id: 'actions',
-    cell: ({ row, table }) => {
+    cell: ({ row }) => {
       const job = row.original;
       return (
         <DropdownMenu>
@@ -160,14 +178,6 @@ export const getColumns = ({ onStatusChange, onDelete }: GetColumnsProps): Colum
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => {
-                const onRowClick = (table.options.meta as any)?.onRowClick;
-                 if (onRowClick) {
-                    onRowClick(row.original);
-                }
-            }}>
-                View/Edit Details
-            </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <span>Change Status</span>
@@ -187,14 +197,6 @@ export const getColumns = ({ onStatusChange, onDelete }: GetColumnsProps): Colum
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(job.id, job.position)}
-              className="text-red-600 focus:text-red-600 focus:bg-red-50"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
