@@ -1,25 +1,24 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const CANDIDATE_STATUSES = [
-  'Applied',
-  'Shortlisted',
-  'First Round',
-  'Second Round',
-  'Third Round',
-  'Final Round',
-  'Hired',
-  'Rejected',
-  'Future Reference',
+  "Applied",
+  "In Review",
+  "Shortlisted",
+  "First Round",
+  "Second Round",
+  "Third Round",
+  "Final Round",
+  "Hired",
+  "Rejected",
+  "Future Reference",
 ] as const;
 
-export const CANDIDATE_TYPES = ['full-time', 'internship'] as const;
-export const CANDIDATE_SOURCES = ['Website', 'LinkedIn', 'Naukri', 'Indeed', 'Referral', 'Other'] as const;
-
+export const CANDIDATE_TYPES = ["full-time", "internship"] as const;
+export const CANDIDATE_SOURCES = ["Website", "LinkedIn", "Naukri", "Indeed", "Facebook", "Instagram", "WhatsApp", "Referral", "Other"] as const;
 
 export type CandidateStatus = (typeof CANDIDATE_STATUSES)[number];
 export type CandidateType = (typeof CANDIDATE_TYPES)[number];
 export type CandidateSource = (typeof CANDIDATE_SOURCES)[number];
-
 
 export type Candidate = {
   id: string;
@@ -43,36 +42,41 @@ export type Candidate = {
   submittedAt: any; // Allow for Firestore timestamp object
   whatsappNumber: string;
   introductionVideoIntern?: string;
+  introductionVideoFulltime?: string;
   comments?: string;
   submissions?: AssessmentSubmission[];
-  source?: CandidateSource;
+  source?: CandidateSource | string;
+  currentCTC?: string;
+  expectedCTC?: string;
 };
 
 export const CandidateUpdateSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Invalid email address'),
-  contactNumber: z.string().min(1, 'Contact number is required'),
-  whatsappNumber: z.string().min(1, 'WhatsApp number is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  pincode: z.string().min(1, 'Pincode is required'),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  contactNumber: z.string().min(1, "Contact number is required"),
+  whatsappNumber: z.string().min(1, "WhatsApp number is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  pincode: z.string().min(1, "Pincode is required"),
   education: z.string().optional(),
-  experience: z.string().min(1, 'Experience is required'),
-  position: z.string().min(1, 'Position is required'),
-  portfolio: z.string().url('Invalid URL').or(z.literal('')),
-  introductionVideoIntern: z.string().url('Invalid URL').or(z.literal('')),
+  experience: z.string().min(1, "Experience is required"),
+  position: z.string().min(1, "Position is required"),
+  portfolio: z.string().url("Invalid URL").or(z.literal("")),
+  introductionVideoIntern: z.string().url("Invalid URL").or(z.literal("")),
+  introductionVideoFulltime: z.string().url("Invalid URL").or(z.literal("")),
   status: z.enum(CANDIDATE_STATUSES),
   type: z.enum(CANDIDATE_TYPES),
   comments: z.string().optional(),
-  source: z.enum(CANDIDATE_SOURCES).optional(),
+  source: z.string().optional(),
+  currentCTC: z.string().optional(),
+  expectedCTC: z.string().optional(),
 });
 
-
-export const JOB_STATUSES = ['Open', 'Closed'] as const;
+export const JOB_STATUSES = ["Open", "Closed"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
-export const JOB_TYPES = ['full-time', 'internship'] as const;
+export const JOB_TYPES = ["full-time", "internship"] as const;
 export type JobType = (typeof JOB_TYPES)[number];
 
 export type JobSection = {
@@ -99,23 +103,11 @@ export type Job = {
   skills?: string[];
 };
 
-
 // Assessment Types
-export const QUESTION_TYPES = [
-    'textarea',
-    'text',
-    'multiple-choice',
-    'checkbox',
-    'file-upload',
-    'date',
-    'email',
-    'number',
-    'url',
-    'tel',
-] as const;
+export const QUESTION_TYPES = ["textarea", "text", "multiple-choice", "checkbox", "file-upload", "date", "email", "number", "url", "tel"] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
-export const AUTHENTICATION_TYPES = ['none', 'email_verification'] as const;
+export const AUTHENTICATION_TYPES = ["none", "email_verification"] as const;
 export type AuthenticationType = (typeof AUTHENTICATION_TYPES)[number];
 
 export type AssessmentQuestion = {
@@ -135,7 +127,7 @@ export type AssessmentSection = {
 };
 
 export type Assessment = {
-  id:string;
+  id: string;
   title: string;
   passcode?: string;
   timeLimit?: number; // in minutes
@@ -154,7 +146,6 @@ export type Assessment = {
   isActive?: boolean;
   shouldAutoGrade?: boolean;
 };
-
 
 export type AssessmentSubmission = {
   id: string;
@@ -185,20 +176,19 @@ export type AssessmentSubmission = {
 export const CollegeSchema = z.object({
   name: z.string().min(1, "College name is required"),
   location: z.string().min(1, "Location is required"),
-  collegeEmail: z.string().email("A valid email is required for the college.").optional().or(z.literal('')),
+  collegeEmail: z.string().email("A valid email is required for the college.").optional().or(z.literal("")),
   contactPerson: z.string().min(1, "Contact person's name is required"),
   contactEmail: z.string().email("A valid email is required for the contact person"),
 });
 
 export type CollegeCandidate = {
-    id: string;
-    name: string;
-    email: string;
-    status: CandidateStatus | string;
-    importedAt?: any;
-    submissions?: AssessmentSubmission[];
+  id: string;
+  name: string;
+  email: string;
+  status: CandidateStatus | string;
+  importedAt?: any;
+  submissions?: AssessmentSubmission[];
 };
-
 
 // Email Template Types
 export const TemplateSchema = z.object({
@@ -208,9 +198,9 @@ export const TemplateSchema = z.object({
 });
 
 export type EmailTemplate = {
-    id: string;
-    name: string;
-    subject: string;
-    body: string;
-    createdAt: any;
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  createdAt: any;
 };

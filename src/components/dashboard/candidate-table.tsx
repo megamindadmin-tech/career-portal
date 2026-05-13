@@ -386,15 +386,21 @@ export function CandidateTable({ title, description, filterType }: CandidateTabl
   }
 
   const columns = useMemo(
-    () => getColumns({ onStatusChange: handleStatusChangeFromDropdown, onDelete: handleDeleteCandidate, onViewSubmission: (sub) => setSelectedSubmission(sub) }),
-    [handleStatusChangeFromDropdown, handleDeleteCandidate]
+    () =>
+      getColumns({
+        onStatusChange: handleStatusChangeFromDropdown,
+        onDelete: handleDeleteCandidate,
+        onViewSubmission: (sub) => setSelectedSubmission(sub),
+        filterType,
+      }),
+    [handleStatusChangeFromDropdown, handleDeleteCandidate, filterType]
   );
 
   const submissionCandidate = data.find(c => c.id === selectedSubmission?.candidateId || c.email.toLowerCase() === selectedSubmission?.candidateEmail.toLowerCase());
 
 
   if (loading) return <p className="p-4">Loading candidates...</p>;
-
+console.log(data)
   return (
     <>
       <Card>
