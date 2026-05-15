@@ -51,13 +51,21 @@ const candidateSchema = z.object({
   state: z.string().min(1, 'State is required'),
   pincode: z.string().min(1, 'Pincode is required'),
   education: z.string().optional(),
-  experience: z.string().min(1, 'Experience is required'),
+  experience: z.string().optional(),
   position: z.string().min(1, 'Position is required'),
-  portfolio: z.string().url('Invalid URL').or(z.literal('')),
+  portfolio: z.string().optional(),
   resumeDataUri: z.string().min(1, 'Resume is required'),
   introductionVideoIntern: z.string().url('Invalid URL').or(z.literal('')),
   source: z.enum(CANDIDATE_SOURCES).optional(),
   type: z.enum(CANDIDATE_TYPES),
+}).superRefine((data, ctx) => {
+  if (data.type === 'full-time' && (!data.experience || data.experience.trim() === '')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Experience is required for full-time candidates',
+      path: ['experience'],
+    });
+  }
 });
 
 export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {

@@ -38,6 +38,10 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
       </div>
     );
   }
+
+  // Normalize type
+  const normalizedType = (candidate.type === 'intern' ? 'internship' : candidate.type === 'emp' ? 'full-time' : candidate.type) || 'full-time';
+  candidate.type = normalizedType as any;
   
   const displayLocation = candidate.city && candidate.state ? `${candidate.city}, ${candidate.state}` : candidate.location;
 
@@ -131,10 +135,38 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
               <h3 className="text-lg font-semibold text-primary mb-2 flex items-center gap-2"><Building className="h-5 w-5" /> Education</h3>
               <p className="text-muted-foreground text-base">{candidate.education || 'N/A'}</p>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-2 flex items-center gap-2"><Calendar className="h-5 w-5" /> Experience</h3>
-              <p className="text-muted-foreground whitespace-pre-wrap text-base">{candidate.experience || candidate.workExperience || 'N/A'}</p>
-            </div>
+            {(candidate.experience || candidate.workExperience) && (
+              <div>
+                <h3 className="text-lg font-semibold text-primary mb-2 flex items-center gap-2">
+                  <Calendar className="h-5 w-5" /> Experience
+                </h3>
+                <p className="text-muted-foreground whitespace-pre-wrap text-base">
+                  {candidate.experience || candidate.workExperience}
+                </p>
+              </div>
+            )}
+            {candidate.type === 'full-time' && (candidate.currentCTC || candidate.expectedCTC) && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-6">
+                {candidate.currentCTC && (
+                  <div className="flex items-start gap-3">
+                    <Briefcase className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                    <div>
+                      <p className="font-medium">Current CTC</p>
+                      <p className="text-muted-foreground">{candidate.currentCTC}</p>
+                    </div>
+                  </div>
+                )}
+                {candidate.expectedCTC && (
+                  <div className="flex items-start gap-3">
+                    <Building className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                    <div>
+                      <p className="font-medium">Expected CTC</p>
+                      <p className="text-muted-foreground">{candidate.expectedCTC}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {candidate.comments && (
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-2 flex items-center gap-2"><MessageSquare className="h-5 w-5" /> Internal Comments</h3>
@@ -143,9 +175,9 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
             )}
           </CardContent>
           <CardFooter className="bg-background p-4 sm:p-6 flex flex-wrap items-center gap-4">
-              {candidate.portfolio && (
+              {candidate.portfolio && (candidate.portfolio.toLowerCase() !== "na" && candidate.portfolio.toLowerCase() !== "n/a") && (
                 <Button variant="outline" asChild>
-                  <a href={candidate.portfolio} target="_blank" rel="noopener noreferrer">
+                  <a href={candidate.portfolio.startsWith("http") ? candidate.portfolio : `https://${candidate.portfolio}`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" /> View Portfolio
                   </a>
                 </Button>
@@ -157,9 +189,9 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
                   </a>
                 </Button>
               )}
-              {candidate.introductionVideoIntern && (
+              {(candidate.introductionVideoIntern || candidate.introductionVideoFulltime) && (
                 <Button variant="outline" asChild>
-                  <a href={candidate.introductionVideoIntern} target="_blank" rel="noopener noreferrer">
+                  <a href={candidate.introductionVideoIntern || candidate.introductionVideoFulltime} target="_blank" rel="noopener noreferrer">
                     <Video className="mr-2 h-4 w-4" /> View Intro Video
                   </a>
                 </Button>

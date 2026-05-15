@@ -18,7 +18,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, MoreHorizontal, FileText, ExternalLink, Video, Share2, Trash2, ClipboardList } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, FileText, ExternalLink, Video, Share2, Trash2, ClipboardList, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -160,30 +160,58 @@ export const getColumns = ({ onStatusChange, onDelete, onViewSubmission, filterT
   };
 
   const assessmentStatusColumn: ColumnDef<Candidate> = {
-    accessorKey: "submissions",
     header: "Assessment Status",
     cell: ({ row }) => {
-      const submissions = row.original.submissions;
-      if (!submissions || submissions.length === 0) {
-        return <Badge variant="outline">Pending</Badge>;
-      }
+      const candidate = row.original;
+      const submissions = candidate.submissions;
+      const hasSubmissions = submissions && submissions.length > 0;
+      const isCompleted = candidate.assessmentCompleted;
+      const pdfUrl = candidate.assessmentPdfUrl;
+
       return (
-        <div className="flex flex-col items-start gap-1">
-          {submissions.map((sub) => (
-            <Button
-              key={sub.id}
-              variant="secondary"
-              size="sm"
-              className="h-auto"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewSubmission(sub);
-              }}
-            >
-              <ClipboardList className="mr-2 h-4 w-4" />
-              {sub.assessmentTitle}
-            </Button>
-          ))}
+        <div className="flex flex-col items-start gap-2">
+          {isCompleted ? (
+            <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">
+              <CheckCircle2 className="mr-1 h-3 w-3" /> Completed
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-muted-foreground italic">
+              {hasSubmissions ? "Submitted" : "Pending"}
+            </Badge>
+          )}
+          
+          <div className="flex flex-wrap gap-1">
+            {hasSubmissions && submissions.map((sub) => (
+              <Button
+                key={sub.id}
+                variant="secondary"
+                size="sm"
+                className="h-7 text-[10px] px-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewSubmission(sub);
+                }}
+              >
+                <ClipboardList className="mr-1 h-3 w-3" />
+                {sub.assessmentTitle}
+              </Button>
+            ))}
+            
+            {pdfUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] px-2 border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-200 shadow-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(pdfUrl, "_blank");
+                }}
+              >
+                <FileText className="mr-1 h-3 w-3" />
+                Assessment PDF
+              </Button>
+            )}
+          </div>
         </div>
       );
     },
@@ -298,8 +326,11 @@ export const getColumns = ({ onStatusChange, onDelete, onViewSubmission, filterT
               </DropdownMenuSub>
             )}
             <ShareActionItem candidateId={candidate.id} />
-            {candidate.portfolio && (
-              <DropdownMenuItem onClick={() => window.open(candidate.portfolio!, "_blank")}>
+            {candidate.portfolio && (candidate.portfolio.toLowerCase() !== "na" && candidate.portfolio.toLowerCase() !== "n/a") && (
+              <DropdownMenuItem onClick={() => {
+                const url = candidate.portfolio!.startsWith("http") ? candidate.portfolio! : `https://${candidate.portfolio!}`;
+                window.open(url, "_blank");
+              }}>
                 <ExternalLink className="mr-2 h-4 w-4" />
                 View Portfolio
               </DropdownMenuItem>
@@ -346,17 +377,19 @@ export const getColumns = ({ onStatusChange, onDelete, onViewSubmission, filterT
   };
 
   const statusColumn = commonColumns.find((c) => c.accessorKey === "status")!;
-  const otherCommonColumns = commonColumns.filter((c) => c.accessorKey !== "status");
+  const sourceColumn = commonColumns.find((c) => c.accessorKey === "source")!;
 
   let columns: ColumnDef<Candidate>[] = [...baseColumns, statusColumn];
 
   if (filterType === "internship") {
-    columns = [...columns, assessmentStatusColumn, appliedDateColumn, ...otherCommonColumns, introVideoColumn, actionColumn];
+    // Interns: Name, Position, Status, Location, Assessment, Date, Source, Actions
+    columns = [...columns, locationColumn, assessmentStatusColumn, appliedDateColumn, sourceColumn, actionColumn];
   } else if (filterType === "full-time") {
-    columns = [...columns, locationColumn, appliedDateColumn, experienceColumn, ...otherCommonColumns, actionColumn];
+    // Full-time: Name, Position, Status, Location, Date, Experience, Source, Actions
+    columns = [...columns, locationColumn, appliedDateColumn, experienceColumn, sourceColumn, actionColumn];
   } else {
-    // For 'All' and 'Freelance', show both experience and video, and applied date
-    columns = [...columns, assessmentStatusColumn, appliedDateColumn, experienceColumn, ...otherCommonColumns, introVideoColumn, actionColumn];
+    // All/Others: Name, Position, Status, Assessment, Date, Experience, Video, Source, Actions
+    columns = [...columns, assessmentStatusColumn, appliedDateColumn, experienceColumn, introVideoColumn, sourceColumn, actionColumn];
   }
 
   return columns;

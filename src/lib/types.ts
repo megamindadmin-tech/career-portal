@@ -48,6 +48,8 @@ export type Candidate = {
   source?: CandidateSource | string;
   currentCTC?: string;
   expectedCTC?: string;
+  assessmentCompleted?: boolean;
+  assessmentPdfUrl?: string;
 };
 
 export const CandidateUpdateSchema = z.object({
@@ -60,9 +62,9 @@ export const CandidateUpdateSchema = z.object({
   state: z.string().min(1, "State is required"),
   pincode: z.string().min(1, "Pincode is required"),
   education: z.string().optional(),
-  experience: z.string().min(1, "Experience is required"),
+  experience: z.string().optional(),
   position: z.string().min(1, "Position is required"),
-  portfolio: z.string().url("Invalid URL").or(z.literal("")),
+  portfolio: z.string().optional(),
   introductionVideoIntern: z.string().url("Invalid URL").or(z.literal("")),
   introductionVideoFulltime: z.string().url("Invalid URL").or(z.literal("")),
   status: z.enum(CANDIDATE_STATUSES),
@@ -71,6 +73,16 @@ export const CandidateUpdateSchema = z.object({
   source: z.string().optional(),
   currentCTC: z.string().optional(),
   expectedCTC: z.string().optional(),
+  assessmentCompleted: z.boolean().optional(),
+  assessmentPdfUrl: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.type === "full-time" && (!data.experience || data.experience.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Experience is required for full-time candidates",
+      path: ["experience"],
+    });
+  }
 });
 
 export const JOB_STATUSES = ["Open", "Closed"] as const;

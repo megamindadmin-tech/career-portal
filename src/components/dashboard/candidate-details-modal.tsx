@@ -10,7 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, FileText, Share2, Loader2, Trash2, ClipboardList,Video } from "lucide-react";
+import { ExternalLink, FileText, Share2, Loader2, Trash2, ClipboardList, Video, Upload, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/app/utils/firebase/firebaseConfig";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
@@ -34,6 +37,7 @@ const toTitleCase = (str: string) => {
 
 export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChanges, onDelete, onViewSubmission }: CandidateDetailsModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [assessmentFile, setAssessmentFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   const form = useForm<CandidateUpdateForm>({
@@ -58,12 +62,15 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
         introductionVideoIntern: candidate.introductionVideoIntern || "",
         introductionVideoFulltime: candidate.introductionVideoFulltime || "",
         status: candidate.status ? (toTitleCase(candidate.status as string) as CandidateStatus) : "Applied",
-        type: candidate.type || "full-time",
+        type: (candidate.type === "intern" ? "internship" : candidate.type === "emp" ? "full-time" : candidate.type) || "full-time",
         comments: candidate.comments || "",
         source: candidate.source || "Website",
         currentCTC: candidate.currentCTC || "",
         expectedCTC: candidate.expectedCTC || "",
+        assessmentCompleted: candidate.assessmentCompleted || false,
+        assessmentPdfUrl: candidate.assessmentPdfUrl || "",
       });
+      setAssessmentFile(null);
     }
   }, [candidate, form]);
 
@@ -82,6 +89,23 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
     setIsProcessing(true);
 
     const updates: Partial<Candidate> = { ...data };
+
+    if (assessmentFile) {
+      try {
+        const fileRef = ref(storage, `assessments/${candidate.id}/${Date.now()}-${assessmentFile.name}`);
+        const uploadResult = await uploadBytes(fileRef, assessmentFile);
+        updates.assessmentPdfUrl = await getDownloadURL(uploadResult.ref);
+      } catch (error) {
+        console.error("Error uploading assessment PDF:", error);
+        toast({
+          variant: "destructive",
+          title: "Upload Failed",
+          description: "There was an error uploading the assessment PDF.",
+        });
+        setIsProcessing(false);
+        return;
+      }
+    }
 
     await onSaveChanges(candidate.id, updates);
     setIsProcessing(false);
@@ -267,35 +291,6 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="currentCTC"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current CTC</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. 5 LPA" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="expectedCTC"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expected CTC</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. 8 LPA" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
                 name="position"
                 render={({ field }) => (
                   <FormItem>
@@ -332,6 +327,38 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
                 )}
               />
             </div>
+
+            {form.watch("type") === "full-time" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="currentCTC"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Current CTC</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. 5 LPA" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="expectedCTC"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expected CTC</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. 8 LPA" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -380,33 +407,120 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
               />
             </div>
 
-              <FormField
-                control={form.control}
-                name="introductionVideoIntern"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Intro Video Link</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        value={field.value || form.getValues("introductionVideoFulltime") || ""}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          // Also update the full-time field to keep them in sync
-                          form.setValue("introductionVideoFulltime", e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="introductionVideoIntern"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intro Video Link</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      value={field.value || form.getValues("introductionVideoFulltime") || ""}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        form.setValue("introductionVideoFulltime", e.target.value);
+                      }}
+                      placeholder="https://video-link.com"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {form.watch("type") === "internship" && (
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-base font-semibold flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" />
+                  Internship Details
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-muted/30 p-4 rounded-lg border">
+                  <FormField
+                    control={form.control}
+                    name="assessmentCompleted"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-background">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="cursor-pointer">
+                            Assessment Completed
+                          </FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            Mark if the candidate has finished their task.
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-2">
+                    <FormLabel>Assessment PDF</FormLabel>
+                    <div className="flex flex-col gap-2">
+                      {form.watch("assessmentPdfUrl") && !assessmentFile && (
+                        <div className="flex items-center gap-2 mb-2 p-2 bg-green-500/10 border border-green-500/20 rounded text-sm text-green-700 dark:text-green-400">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span className="font-medium">PDF Uploaded</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="ml-auto h-7 text-xs font-semibold text-green-700 hover:bg-green-600 hover:text-white transition-all duration-200 shadow-sm"
+                            asChild
+                          >
+                            <a href={form.watch("assessmentPdfUrl")} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3 mr-1" /> View
+                            </a>
+                          </Button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.type !== "application/pdf") {
+                                toast({
+                                  variant: "destructive",
+                                  title: "Invalid file type",
+                                  description: "Please upload a PDF file.",
+                                });
+                                return;
+                              }
+                              setAssessmentFile(file);
+                            }
+                          }}
+                          className="cursor-pointer text-xs"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground italic">
+                        {assessmentFile ? `Selected: ${assessmentFile.name}` : "Upload the assessment result in PDF format"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-4 py-4">
               {candidate.resumeUrl && (
                 <Button variant="outline" asChild>
                   <a href={candidate.resumeUrl} target="_blank" rel="noopener noreferrer">
                     <FileText className="mr-2 h-4 w-4" /> View Resume
+                  </a>
+                </Button>
+              )}
+              {candidate.portfolio && (candidate.portfolio.toLowerCase() !== "na" && candidate.portfolio.toLowerCase() !== "n/a") && (
+                <Button variant="outline" asChild>
+                  <a href={candidate.portfolio.startsWith("http") ? candidate.portfolio : `https://${candidate.portfolio}`} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" /> View Portfolio
                   </a>
                 </Button>
               )}
