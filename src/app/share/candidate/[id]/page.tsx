@@ -5,7 +5,7 @@ import type { Candidate } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, Video, Briefcase, GraduationCap, MapPin, Building, Calendar, Mail, Phone, MessageSquare, Info } from 'lucide-react';
+import { ExternalLink, FileText, Video, Briefcase, GraduationCap, MapPin, Building, Calendar, Mail, Phone, MessageSquare, Info, ClipboardList, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 import mmLogo from '../../../../../.idx/mmLogo.png';
 import { format } from 'date-fns';
@@ -167,8 +167,22 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
                 )}
               </div>
             )}
+            {candidate.type === 'internship' && (
+              <div className="border-t border-border pt-6">
+                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5" /> Internship Details
+                </h3>
+                <div className="flex items-start gap-3">
+                    <CheckCircle2 className={`h-5 w-5 mt-0.5 shrink-0 ${candidate.assessmentCompleted ? 'text-green-500' : 'text-muted-foreground'}`} />
+                    <div>
+                        <p className="font-medium">Assessment Status</p>
+                        <p className="text-muted-foreground">{candidate.assessmentCompleted ? 'Completed' : 'Pending'}</p>
+                    </div>
+                </div>
+              </div>
+            )}
             {candidate.comments && (
-              <div>
+              <div className="border-t border-border pt-6">
                 <h3 className="text-lg font-semibold text-primary mb-2 flex items-center gap-2"><MessageSquare className="h-5 w-5" /> Internal Comments</h3>
                 <p className="text-muted-foreground whitespace-pre-wrap text-base">{candidate.comments}</p>
               </div>
@@ -193,6 +207,13 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
                 <Button variant="outline" asChild>
                   <a href={candidate.introductionVideoIntern || candidate.introductionVideoFulltime} target="_blank" rel="noopener noreferrer">
                     <Video className="mr-2 h-4 w-4" /> View Intro Video
+                  </a>
+                </Button>
+              )}
+              {candidate.type === 'internship' && candidate.assessmentPdfUrl && (
+                <Button variant="outline" asChild>
+                  <a href={candidate.assessmentPdfUrl} target="_blank" rel="noopener noreferrer">
+                    <ClipboardList className="mr-2 h-4 w-4" /> View Assessment
                   </a>
                 </Button>
               )}

@@ -445,7 +445,13 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              if (!checked) {
+                                form.setValue("assessmentPdfUrl", "");
+                                setAssessmentFile(null);
+                              }
+                            }}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -467,16 +473,30 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
                         <div className="flex items-center gap-2 mb-2 p-2 bg-green-500/10 border border-green-500/20 rounded text-sm text-green-700 dark:text-green-400">
                           <CheckCircle2 className="h-4 w-4" />
                           <span className="font-medium">PDF Uploaded</span>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="ml-auto h-7 text-xs font-semibold text-green-700 hover:bg-green-600 hover:text-white transition-all duration-200 shadow-sm"
-                            asChild
-                          >
-                            <a href={form.watch("assessmentPdfUrl")} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3 mr-1" /> View
-                            </a>
-                          </Button>
+                          <div className="ml-auto flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 px-2 text-xs font-semibold text-green-700 hover:bg-green-600 hover:text-white transition-all duration-200 shadow-sm"
+                              asChild
+                            >
+                              <a href={form.watch("assessmentPdfUrl")} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3 w-3 mr-1" /> View
+                              </a>
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs font-semibold text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 shadow-sm"
+                              onClick={() => {
+                                form.setValue("assessmentPdfUrl", "");
+                                setAssessmentFile(null);
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" /> Remove
+                            </Button>
+                          </div>
                         </div>
                       )}
                       <div className="flex items-center gap-2">
