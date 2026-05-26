@@ -62,6 +62,17 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
     return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
   };
 
+  const getValidVideoUrl = (intern?: string, fulltime?: string) => {
+    const isValid = (url?: string) => {
+      if (!url) return false;
+      const lower = url.toLowerCase();
+      return lower !== "na" && lower !== "n/a" && lower !== "none" && lower !== "";
+    };
+    if (isValid(intern)) return intern;
+    if (isValid(fulltime)) return fulltime;
+    return undefined;
+  };
+
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
       <div className="mx-auto max-w-4xl">
@@ -203,13 +214,17 @@ export default async function SharedCandidatePage({ params }: { params: { id: st
                   </a>
                 </Button>
               )}
-              {(candidate.introductionVideoIntern || candidate.introductionVideoFulltime) && (
-                <Button variant="outline" asChild>
-                  <a href={candidate.introductionVideoIntern || candidate.introductionVideoFulltime} target="_blank" rel="noopener noreferrer">
-                    <Video className="mr-2 h-4 w-4" /> View Intro Video
-                  </a>
-                </Button>
-              )}
+              {(() => {
+                const videoUrl = getValidVideoUrl(candidate.introductionVideoIntern, candidate.introductionVideoFulltime);
+                if (!videoUrl) return null;
+                return (
+                  <Button variant="outline" asChild>
+                    <a href={videoUrl.startsWith("http") ? videoUrl : `https://${videoUrl}`} target="_blank" rel="noopener noreferrer">
+                      <Video className="mr-2 h-4 w-4" /> View Intro Video
+                    </a>
+                  </Button>
+                );
+              })()}
               {candidate.type === 'internship' && candidate.assessmentPdfUrl && (
                 <Button variant="outline" asChild>
                   <a href={candidate.assessmentPdfUrl} target="_blank" rel="noopener noreferrer">

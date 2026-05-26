@@ -65,8 +65,20 @@ export const CandidateUpdateSchema = z.object({
   experience: z.string().optional(),
   position: z.string().min(1, "Position is required"),
   portfolio: z.string().optional(),
-  introductionVideoIntern: z.string().url("Invalid URL").or(z.literal("")),
-  introductionVideoFulltime: z.string().url("Invalid URL").or(z.literal("")),
+  introductionVideoIntern: z.string().refine(
+    (val) => {
+      if (val === "" || val.toLowerCase() === "na" || val.toLowerCase() === "n/a") return true;
+      return z.string().url().safeParse(val).success;
+    },
+    { message: "Invalid URL" }
+  ),
+  introductionVideoFulltime: z.string().refine(
+    (val) => {
+      if (val === "" || val.toLowerCase() === "na" || val.toLowerCase() === "n/a") return true;
+      return z.string().url().safeParse(val).success;
+    },
+    { message: "Invalid URL" }
+  ),
   status: z.enum(CANDIDATE_STATUSES),
   type: z.enum(CANDIDATE_TYPES),
   comments: z.string().optional(),

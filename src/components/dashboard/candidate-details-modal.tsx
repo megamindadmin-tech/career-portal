@@ -35,6 +35,17 @@ const toTitleCase = (str: string) => {
   return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
 };
 
+const getValidVideoUrl = (intern?: string, fulltime?: string) => {
+  const isValid = (url?: string) => {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return lower !== "na" && lower !== "n/a" && lower !== "none" && lower !== "";
+  };
+  if (isValid(intern)) return intern;
+  if (isValid(fulltime)) return fulltime;
+  return undefined;
+};
+
 export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChanges, onDelete, onViewSubmission }: CandidateDetailsModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [assessmentFile, setAssessmentFile] = useState<File | null>(null);
@@ -130,7 +141,7 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl flex flex-col max-h-[90vh]">
         <DialogHeader>
-          <div className="flex justify-between items-start">
+          <div className="flex pl-3 justify-between items-start">
             <div>
               <DialogTitle>{candidate.fullName}</DialogTitle>
               <DialogDescription>
@@ -145,7 +156,14 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto pr-6 space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.error("Form validation errors:", errors);
+            toast({
+              variant: "destructive",
+              title: "Validation Error",
+              description: "Please check the form fields for errors.",
+            });
+          })} className="flex-1 overflow-y-auto pr-6 pl-3 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -544,13 +562,17 @@ export function CandidateDetailsModal({ isOpen, onClose, candidate, onSaveChange
                   </a>
                 </Button>
               )}
-              {(candidate.introductionVideoIntern || candidate.introductionVideoFulltime) && (
-                <Button variant="outline" asChild>
-                  <a href={candidate.introductionVideoIntern || candidate.introductionVideoFulltime} target="_blank" rel="noopener noreferrer">
-                    <Video className="mr-2 h-4 w-4" /> View Intro Video
-                  </a>
-                </Button>
-              )}
+              {(() => {
+                const videoUrl = getValidVideoUrl(candidate.introductionVideoIntern, candidate.introductionVideoFulltime);
+                if (!videoUrl) return null;
+                return (
+                  <Button variant="outline" asChild>
+                    <a href={videoUrl.startsWith("http") ? videoUrl : `https://${videoUrl}`} target="_blank" rel="noopener noreferrer">
+                      <Video className="mr-2 h-4 w-4" /> View Intro Video
+                    </a>
+                  </Button>
+                );
+              })()}
             </div>
 
             {candidate.submissions && candidate.submissions.length > 0 && (
