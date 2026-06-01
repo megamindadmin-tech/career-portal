@@ -13,7 +13,7 @@ export const CANDIDATE_STATUSES = [
   "Future Reference",
 ] as const;
 
-export const CANDIDATE_TYPES = ["full-time", "internship"] as const;
+export const CANDIDATE_TYPES = ["full-time", "internship", "freelancer"] as const;
 export const CANDIDATE_SOURCES = ["Website", "LinkedIn", "Naukri", "Indeed", "Facebook", "Instagram", "WhatsApp", "Referral", "Other"] as const;
 
 export type CandidateStatus = (typeof CANDIDATE_STATUSES)[number];
