@@ -30,7 +30,7 @@ export default function FreelanceCandidatesPage() {
         <CandidateTable
           title="Freelance Candidates"
           description="A list of all freelance applicants."
-          filterType="freelance"
+          filterType="freelancer"
         />
       </main>
   );

@@ -106,39 +106,14 @@ export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = async () => {
+      reader.onload = () => {
         const resumeDataUri = reader.result as string;
         form.setValue('resumeDataUri', resumeDataUri);
-
-        const result = await parseResumeAction({ resumeDataUri });
-
-        if (result.success && result.data) {
-           const [city, state] = (result.data.location || ',').split(',');
-
-          form.reset({
-            ...form.getValues(),
-            fullName: result.data.fullName,
-            email: result.data.email,
-            contactNumber: result.data.phone,
-            whatsappNumber: result.data.phone, // Assuming same as contact
-            address: result.data.address,
-            city: city.trim(),
-            state: state ? state.trim() : '',
-            experience: result.data.experience,
-            education: result.data.education,
-            resumeDataUri: resumeDataUri,
-          });
-          toast({
-            title: 'Resume Parsed Successfully!',
-            description: 'The form has been pre-filled with the extracted data.',
-          });
-        } else {
-           toast({
-            variant: 'destructive',
-            title: 'Uh oh! Something went wrong.',
-            description: result.error || 'There was a problem parsing the resume.',
-          });
-        }
+        
+        toast({
+          title: 'Resume Attached!',
+          description: 'The file has been attached. Please enter details manually.',
+        });
       };
       reader.onerror = error => {
         throw error;
@@ -240,7 +215,7 @@ export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {
                   <FormControl>
                       <Input
                         type="file"
-                        accept=".pdf,.doc,.docx"
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         onChange={handleFileChange}
                         disabled={isProcessing}
                       />
@@ -251,7 +226,7 @@ export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {
                 {isProcessing && (
                   <div className="flex items-center justify-center gap-2 rounded-md border bg-muted p-4 text-sm text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Please wait, AI is parsing the resume...</span>
+                    <span>Processing file...</span>
                   </div>
                 )}
 
