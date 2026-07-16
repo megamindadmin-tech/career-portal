@@ -13,7 +13,7 @@ export const CANDIDATE_STATUSES = [
   "Future Reference",
 ] as const;
 
-export const CANDIDATE_TYPES = ["full-time", "internship", "freelancer"] as const;
+export const CANDIDATE_TYPES = ["full-time", "internship", "freelancer", "production"] as const;
 export const CANDIDATE_SOURCES = ["Website", "LinkedIn", "Naukri", "Indeed", "Facebook", "Instagram", "WhatsApp", "Referral", "Other"] as const;
 
 export type CandidateStatus = (typeof CANDIDATE_STATUSES)[number];
@@ -100,7 +100,7 @@ export const CandidateUpdateSchema = z.object({
 export const JOB_STATUSES = ["Open", "Closed"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
-export const JOB_TYPES = ["full-time", "internship"] as const;
+export const JOB_TYPES = ["full-time", "internship", "production"] as const;
 export type JobType = (typeof JOB_TYPES)[number];
 
 export type JobSection = {

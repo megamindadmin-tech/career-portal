@@ -20,6 +20,7 @@ import {
   Building2,
   Mail,
   User,
+  Film,
 } from 'lucide-react';
 import mmLogoOpen from '../../../.idx/mmLogo.png';
 import mmLogoclose from '../../../public/icon.png';
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/dashboard/full-time', icon: Briefcase, label: 'Full-time' },
   { href: '/dashboard/intern', icon: GraduationCap, label: 'Interns' },
   { href: '/dashboard/freelance', icon: User, label: 'Freelance' },
+  { href: '/dashboard/production', icon: Film, label: 'Production' },
 ];
 
 export function Sidebar({ isSidebarOpen }: SidebarProps) {

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { Loader2, Briefcase, Users, GraduationCap, ClipboardList, FileText, UserCheck, Building2 } from 'lucide-react';
+import { Loader2, Briefcase, Users, GraduationCap, ClipboardList, FileText, UserCheck, Building2, Film } from 'lucide-react';
 import { onSnapshot, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/app/utils/firebase/firebaseConfig';
 import type { Candidate, Job, Assessment, AssessmentSubmission, College } from '@/lib/types';
@@ -140,6 +140,7 @@ export default function DashboardPage() {
 
   const fullTimeCount = candidates.filter(c => c.type === 'full-time').length;
   const internCount = candidates.filter(c => c.type === 'internship').length;
+  const productionCount = candidates.filter(c => c.type === 'production').length;
   const hiredCount = candidates.filter(c => c.status?.toLowerCase() === 'hired').length;
   const openPositionsCount = jobs.filter(j => j.status === 'Open').length;
   
@@ -192,6 +193,16 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">{internCount}</div>
               <p className="text-xs text-muted-foreground">Total intern applicants</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Production Apps</CardTitle>
+              <Film className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{productionCount}</div>
+              <p className="text-xs text-muted-foreground">Total production applicants</p>
             </CardContent>
           </Card>
            <Card>
