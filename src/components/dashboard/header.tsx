@@ -20,6 +20,7 @@ import {
   Building2,
   Mail,
   User,
+  Film,
 } from 'lucide-react';
 import mmLogo from '../../../.idx/mmLogo.png';
 import { usePathname } from 'next/navigation';
@@ -45,6 +46,7 @@ const navItems = [
   { href: '/dashboard/full-time', icon: Briefcase, label: 'Full-time' },
   { href: '/dashboard/intern', icon: GraduationCap, label: 'Interns' },
   { href: '/dashboard/freelance', icon: User, label: 'Freelance' },
+  { href: '/dashboard/production', icon: Film, label: 'Production' },
 ];
 
 
