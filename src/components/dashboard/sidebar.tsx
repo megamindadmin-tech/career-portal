@@ -21,6 +21,7 @@ import {
   Mail,
   User,
   Film,
+  UserCheck,
 } from 'lucide-react';
 import mmLogoOpen from '../../../.idx/mmLogo.png';
 import mmLogoclose from '../../../public/icon.png';
@@ -37,6 +38,7 @@ const navItems = [
   { href: '/dashboard/templates', icon: Mail, label: 'Templates' },
   { href: '/dashboard/colleges', icon: Building2, label: 'Colleges'},
   { href: '/dashboard/all', icon: Users, label: 'All Candidates' },
+  { href: '/dashboard/in-review', icon: UserCheck, label: 'In Review' },
   { href: '/dashboard/full-time', icon: Briefcase, label: 'Full-time' },
   { href: '/dashboard/intern', icon: GraduationCap, label: 'Interns' },
   { href: '/dashboard/freelance', icon: User, label: 'Freelance' },
