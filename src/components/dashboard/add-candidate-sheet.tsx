@@ -106,20 +106,65 @@ export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => {
-        const resumeDataUri = reader.result as string;
-        form.setValue('resumeDataUri', resumeDataUri);
-        
-        toast({
-          title: 'Resume Attached!',
-          description: 'The file has been attached. Please enter details manually.',
-        });
+      reader.onload = async () => {
+        try {
+          const resumeDataUri = reader.result as string;
+          form.setValue('resumeDataUri', resumeDataUri);
+
+          toast({
+            title: 'Parsing Resume...',
+            description: 'Extracting candidate details using AI...',
+          });
+
+          const result = await parseResumeAction({ resumeDataUri });
+
+          if (result.success && result.data) {
+            const { fullName, email, phone, location, address, education, experience } = result.data;
+
+            if (fullName) form.setValue('fullName', fullName);
+            if (email) form.setValue('email', email);
+            if (phone) {
+              form.setValue('contactNumber', phone);
+              form.setValue('whatsappNumber', phone);
+            }
+            if (address) form.setValue('address', address);
+            if (location) {
+              const parts = location.split(',').map(s => s.trim());
+              if (parts[0]) form.setValue('city', parts[0]);
+              if (parts[1]) form.setValue('state', parts[1]);
+            }
+            if (education) form.setValue('education', education);
+            if (experience) form.setValue('experience', experience);
+
+            toast({
+              title: 'Resume Auto-filled!',
+              description: 'Candidate details extracted successfully. Please review the fields.',
+            });
+          } else {
+            toast({
+              variant: 'destructive',
+              title: 'Parsing Warning',
+              description: result.error || 'Could not auto-fill details from resume. You can enter them manually.',
+            });
+          }
+        } catch (err: any) {
+          console.error('Error parsing resume:', err);
+          toast({
+            variant: 'destructive',
+            title: 'Parsing Failed',
+            description: 'Could not extract details automatically. Please enter details manually.',
+          });
+        } finally {
+          setIsProcessing(false);
+        }
       };
       reader.onerror = error => {
+        setIsProcessing(false);
         throw error;
       };
     } catch (error) {
       console.error(error);
+      setIsProcessing(false);
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
@@ -128,8 +173,6 @@ export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {
             ? error.message
             : 'There was a problem reading the file.',
       });
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -150,10 +193,10 @@ export function AddCandidateSheet({ prefilledType }: AddCandidateSheetProps) {
         city: data.city,
         state: data.state,
         pincode: data.pincode,
-        education: data.education,
-        experience: data.experience,
+        education: data.education || '',
+        experience: data.experience || '',
         position: data.position,
-        portfolio: data.portfolio,
+        portfolio: data.portfolio || '',
         resumeUrl: resumeUrl,
         type: data.type,
         source: data.source,

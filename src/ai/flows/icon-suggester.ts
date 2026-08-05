@@ -30,6 +30,7 @@ export async function suggestIcon(
 
 const iconSuggesterPrompt = ai.definePrompt({
   name: 'iconSuggesterPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: { schema: IconSuggesterInputSchema },
   output: { schema: IconSuggesterOutputSchema },
   prompt: `You are an expert at selecting the perfect icon for a job title.
@@ -54,7 +55,7 @@ const suggestIconFlow = ai.defineFlow(
     outputSchema: IconSuggesterOutputSchema,
   },
   async input => {
-    const { output } = await iconSuggesterPrompt(input);
+    const { output } = await iconSuggesterPrompt(input, { model: 'googleai/gemini-2.5-flash' });
     return output!;
   }
 );

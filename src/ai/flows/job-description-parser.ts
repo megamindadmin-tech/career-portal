@@ -39,6 +39,7 @@ export async function parseJobDescription(
 
 const jobDescriptionParserPrompt = ai.definePrompt({
   name: 'jobDescriptionParserPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: JobDescriptionParserInputSchema},
   output: {schema: JobDescriptionParserOutputSchema},
   prompt: `You are an expert at parsing job descriptions into structured JSON.
@@ -63,7 +64,7 @@ const parseJobDescriptionFlow = ai.defineFlow(
     outputSchema: JobDescriptionParserOutputSchema,
   },
   async input => {
-    const {output} = await jobDescriptionParserPrompt(input);
+    const { output } = await jobDescriptionParserPrompt(input, { model: 'googleai/gemini-2.5-flash' });
     if (!output) {
       throw new Error('AI response was empty.');
     }

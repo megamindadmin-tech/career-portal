@@ -40,6 +40,7 @@ export async function extractResumeData(
 
 const resumeDataExtractionPrompt = ai.definePrompt({
   name: 'resumeDataExtractionPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: ExtractResumeDataInputSchema},
   output: {schema: ExtractResumeDataOutputSchema},
   prompt: `You are an AI assistant that extracts information from resumes.
@@ -65,7 +66,7 @@ const extractResumeDataFlow = ai.defineFlow(
     outputSchema: ExtractResumeDataOutputSchema,
   },
   async input => {
-    const {output} = await resumeDataExtractionPrompt(input);
+    const {output} = await resumeDataExtractionPrompt(input, { model: 'googleai/gemini-2.5-flash' });
     return output!;
   }
 );
